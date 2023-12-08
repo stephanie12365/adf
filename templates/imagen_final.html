@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Swap App - Resultado</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            color: #333;
+        }
+
+        h1 {
+            color: #007bff;
+        }
+
+        .result-image-container {
+            margin-top: 20px;
+        }
+
+        .download-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .download-button:hover {
+            background-color: #0056b3;
+        }
+
+        .result-image {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .result-image:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Resultado del Proceso</h1>
+
+    {% if result_image %}
+        <h2>Imagen Resultante:</h2>
+        <div class="result-image-container">
+            <p>Actualice hasta que aparezcan los rostros como usted los encargó. En caso de no visualizar todos los rostros, actualiza la página sin cerrarla. Descarga la imagen para no perderla.</p>
+            <p>Descargue la imagen ahora, nosotros no la guardaremos.</p>
+            <!-- Agregar el botón de descarga -->
+            <a class="download-button" href="{{ url_for('static', filename=result_image) }}" download="result_image.jpg">Descargar Imagen</a>
+            
+
+            <!-- Tamaño fijo del contenedor de la imagen -->
+            <div style="width: 300px; height: 300px; overflow: hidden; margin: 10px auto;">
+                <img class="result-image" src="{{ url_for('static', filename=result_image) }}" alt="Result Image">
+            </div>
+        </div>
+    {% else %}
+        <p>Actualice hasta que aparezcan los rostros como usted los encargó. Por ahora no hay imagen resultante disponible.</p>
+    {% endif%}
+
+    <p><a href="{{ url_for('seleccion_estilo') }}" style="color: #007bff;">Volver a la página principal</a></p>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galería de Imágenes</title>
+    
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #555;
+        }
+
+        .image-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .image-container {
+            position: relative;
+            margin: 10px;
+        }
+
+        .image-container img {
+            max-width: 300px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #uploadForm {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #imageInput {
+            margin-right: 10px;
+        }
+
+        #uploadForm button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        #uploadForm button:hover {
+            background-color: #45a049;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .design-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #333;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            z-index: 1000;
+        }
+
+        #codigoForm {
+            text-align: center;
+        }
+
+        #codigo {
+            padding: 8px;
+            margin-right: 8px;
+        }
+
+        #lockScreen button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        p {
+            text-align: center;
+            margin: 10px 0;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>ATENCIÓN: Primero: carga 1 cara - Segundo: presiona en subir cara - (repite 5 veces para 5 caras diferentes)  - Tercero: luego selecciona el modelo y espere - Cuarto: Deje que la página termine de cargar sola, no presione nada, La página le redirigirá (aprox. 2 minutos)</h1>
+    <p>Recuerda subir las caras en orden: la primera remplazará el primer rostro del modelo, la segunda remplazará el segundo rostro del modelo, etc - De izquierda a derecha</p>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="imageInput" accept=".jpg, .png, .jpeg" />
+        <button type="button" onclick="uploadImage()">Subir rostro</button>
+        <div class="loader" id="loader"></div>
+    </form>
+    <div class="image-container" id="imageContainer"></div>
+
+    <script>
+        // JavaScript para manejar la carga de archivos
+        function uploadImage() {
+            var input = document.getElementById('imageInput');
+            var file = input.files[0];
+
+            if (file) {
+                var formData = new FormData();
+                formData.append('file', file);
+
+                // Muestra el indicador de carga
+                document.getElementById('loader').style.display = 'inline-block';
+
+                // Puedes usar Fetch API o XMLHttpRequest para enviar la imagen a tu servidor Flask.
+                // Aquí hay un ejemplo usando Fetch:
+
+                fetch('/select_image', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Respuesta del servidor:', data);
+                    // Puedes manejar la respuesta del servidor aquí
+
+                    // Oculta el indicador de carga después de completar la carga
+                    document.getElementById('loader').style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error al subir la imagen:', error);
+
+                    // Oculta el indicador de carga en caso de error
+                    document.getElementById('loader').style.display = 'none';
+                });
+            } else {
+                console.log('No se seleccionó ninguna imagen.');
+            }
+        }
+    </script>
+
+
+    <div class="lock-screen" id="lockScreen">
+        <form id="codigoForm">
+            <p>Cada ingreso cuenta como 1 crédito<p>
+            <label for="codigo">Ingrese el código:</label>
+            <input type="password" id="codigo" name="codigo" required="">
+            <button type="button" onclick="validarCodigo()">Desbloquear</button>
+        </form>
+    </div>
+
+    
+    <div class="image-gallery">
+        {% for imagefilename in image_paths %}
+            <div class="image-container">
+                <a href="{{ url_for('index') }}">
+                    <img src="{{ url_for('static', filename='quintuples/reducido/' + imagefilename) }}" alt="Image" onclick="procesarImagen('{{ imagefilename }}')">
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        console.log("Script JavaScript ejecutándose correctamente.");
+
+        var codigosValidos = [];
+
+        fetch('/obtener_codigos_validos')
+            .then(response => response.json())
+            .then(data => {
+                codigosValidos = data.codigos;
+            })
+            .catch(error => {
+                console.error('Error al obtener los códigos válidos:', error);
+            });
+
+        function validarCodigo() {
+            var codigo = document.getElementById("codigo").value;
+            
+            fetch('/validar_codigo/' + codigo)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        document.getElementById("lockScreen").style.display = "none";
+                        document.getElementById("gallery").style.display = "flex";
+                    } else {
+                        alert("Código no válido. Intente nuevamente o compre más créditos");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al validar el código:', error);
+                });
+                
+        }
+
+        function procesarImagen(imageFilename) {
+            var xhr = new XMLHttpRequest();
+        
+            xhr.open('POST', '{{ url_for('procesar') }}', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+        
+            var data = JSON.stringify({ 'imagefilename': imageFilename });
+        
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    console.log(xhr.responseText);
+                    alert("Nombre del archivo seleccionado: " + imageFilename);
+                } else {
+                    console.error("Error al procesar la imagen:", xhr.statusText);
+                }
+            };
+        
+            xhr.send(data);
+        }
+    </script>
+
+</body>
+</html>
